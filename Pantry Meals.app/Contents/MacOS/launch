@@ -1,0 +1,37 @@
+#!/bin/bash
+set -eu
+export PATH="/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+cd "$(dirname "$0")/../Resources"
+
+for prefix in /opt/homebrew /usr/local; do
+    python="$prefix/opt/python@3.11/libexec/bin/python3"
+    if [ -x "$python" ]; then
+        export PATH="$(dirname "$python"):$PATH"
+        break
+    fi
+done
+
+state="$HOME/Library/Application Support/Pantry Meals Desktop"
+mkdir -p "$state"
+export PANTRY_VENV="$state/venv"
+export PANTRY_SETTINGS="$state/meal-settings.env"
+
+start() {
+    if ! "$PANTRY_VENV/bin/python" -c 'import tkinter, psycopg, dotenv, langgraph, langchain_openai' 2>/dev/null ||
+       [ ! -f "$PANTRY_SETTINGS" ]; then
+        /bin/bash setup.sh || return 1
+    fi
+    pg_bin="$(brew --prefix postgresql@17)/bin"
+    if ! "$pg_bin/pg_isready" -q; then
+        brew services start postgresql@17 || return 1
+        for attempt in {1..20}; do
+            "$pg_bin/pg_isready" -q && break
+            sleep 1
+        done
+    fi
+    "$PANTRY_VENV/bin/python" app.py
+}
+
+if ! start > "$state/setup.log" 2>&1; then
+    /usr/bin/osascript -e 'display alert "Pantry Meals could not open" message "See setup.log in Library/Application Support/Pantry Meals Desktop."'
+fi

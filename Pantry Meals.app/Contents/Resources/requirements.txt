@@ -1,0 +1,4 @@
+psycopg[binary]==3.2.12
+python-dotenv==1.1.1
+langgraph==1.2.19
+langchain-openai==1.7.3

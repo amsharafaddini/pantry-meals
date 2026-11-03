@@ -1,0 +1,17 @@
+Ingredients
+spaghetti, egg, pepper, salt
+
+Click Add
+
+Meal
+carbonara
+
+Click Find meal
+
+Example result
+Spaghetti carbonara
+25 minutes
+
+To buy
+guanciale
+pecorino
